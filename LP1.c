@@ -855,7 +855,7 @@ int main(){
 
     // Ordena a lista em ordem crescente de clientes de acordo com a data das transacoes
     printf("Ordenando data das transacoes.\n");
-    //ordenar_transacoes_data(listaTransacoes);
+    ordenar_transacoes_data(listaTransacoes);
     printf("Data ordenada.\n");
 
     // Ordena a lista em ordem crescente de clientes de acordo com a data das transacoes
