@@ -54,42 +54,8 @@ struct Transacoes_cartao_credito{
     struct Transacoes_cartao_credito *prox;
 };
 
- // Calculo do saldo de todas contas
-void calcular_saldo(struct Cliente *listaCliente, struct Conta *listaConta , struct Transacoes *listaTransacoes){
-
-    // Declaração de variável
-    double saldo = 0, saldo_conta = 0;
-
-    // Criação de listas auxiliares
-    struct Cliente *auxCliente = listaCliente->prox;
-    struct Conta *auxConta = listaConta->prox;
-    struct Transacoes *auxTransacoes = listaTransacoes->prox;
-
-    while(auxCliente != NULL){ // Percorre a lista de clientes
-        auxConta = listaConta->prox; // Vai para o inicio da lista de contas
-        while(auxConta != NULL){ // Percorre a lista de contas
-            if(auxConta->id_cliente_conta == auxCliente->id_cliente){ // Filtro de conta
-                auxTransacoes = listaTransacoes->prox; // Vai para o inicio da lista de transacoes
-                while(auxTransacoes != NULL){ // Percorre a lista de transacoes
-                    if(auxTransacoes->id_conta_origem == auxConta->id_conta){ // Verifica se a conta é origem
-                        saldo-=auxTransacoes->valor_trans;
-                    }
-                    if(auxTransacoes->id_conta_destino == auxConta->id_conta){ // Verifica se a conta é destino
-                        saldo+=auxTransacoes->valor_trans;
-                    }
-                    auxTransacoes = auxTransacoes->prox; // Vai para a proxima posicao da lista
-                }
-            }
-            auxConta = auxConta->prox; // Vai para a proxima posicao da lista
-        }
-        auxCliente->saldo = saldo; // Atribui o saldo para cada cliente
-        auxCliente = auxCliente->prox; // Vai para a proxima posicao da lista
-        saldo = 0; // Reseta o saldo para o proximo cliente
-    }
-}
-
 // Inserção de clientes com ordenação numerica de acordo com o ID do cliente
-void inserir_cliente_ordenado(struct Cliente *listaCliente, int id_cliente, char nome[], char cpf[], char telefone[], char municipio[], char estado[]){
+void inserir_dados_cliente(struct Cliente *listaCliente, int id_cliente, char nome[], char cpf[], char telefone[], char municipio[], char estado[]){
 
     // Criação de um novo nó para a lista
     struct Cliente *novoNo = malloc(sizeof(struct Cliente));
@@ -101,6 +67,7 @@ void inserir_cliente_ordenado(struct Cliente *listaCliente, int id_cliente, char
     strcpy(novoNo->telefone, telefone);
     strcpy(novoNo->municipio, municipio);
     strcpy(novoNo->estado, estado);
+
 
     // Mudança para o novoNo da lista
     novoNo->prox = listaCliente->prox;
@@ -179,141 +146,70 @@ void inserir_dados_trasacoes_cc(struct Transacoes_cartao_credito *listaTransCard
     listaTransCard->prox = novoNo;
 }
 
-// Função para imprimir a lista de todos os clientes
-void imprimir_lista(struct Cliente *listaCliente, struct Conta *listaConta, struct Operacao *listaOperacao, struct Transacoes *listaTransacoes, struct Transacoes_cartao_credito *listaTransCard){
+// Converte a data para dias
+int converter_para_dia(struct tm data_dia){
+    return(data_dia.tm_year*365+data_dia.tm_mon*30+data_dia.tm_mday);
+}
 
-    char x[MAX];
+// Converta a data em mes
+int converter_para_mes(int mes , int ano){
+    return mes + ano*12;
+}
+
+// Pega o tempo real em segundos e faz a converção para o tempo real e a coloca na struct tm
+struct tm *mesAtual(){
+
+    // Struct para armazenar dados sobre a data e hora
+    struct tm *mes_atual;
+
+    // Pega o tempo real em segundos
+    time_t segundos;
+    time(&segundos);
+    mes_atual = localtime(&segundos);
+
+    // Conversão para mes e ano
+    mes_atual->tm_mon += 1;
+    mes_atual->tm_year += 1900;
+
+return mes_atual;
+}
+
+ // Calculo do saldo de todas contas
+void calcular_saldo(struct Cliente *listaCliente, struct Conta *listaConta , struct Transacoes *listaTransacoes){
+
+    // Declaração de variável
+    double saldo = 0, saldo_conta = 0;
 
     // Criação de listas auxiliares
     struct Cliente *auxCliente = listaCliente->prox;
     struct Conta *auxConta = listaConta->prox;
-    struct Operacao *auxOperacao = listaOperacao->prox;
     struct Transacoes *auxTransacoes = listaTransacoes->prox;
-    struct Transacoes_cartao_credito *auxTransCard = listaTransCard->prox;
-
-    // Laço para exibição das listas
-    printf("-----------------------------------------------------------------------------------------------------------------------\n");
-    while(auxCliente != NULL){ // Percorre a lista de clientes
-       printf("| ID: %d | Nome: %s | CPF: %s | Telefone: %s | Municipio: %s | Estado: %s |\n", auxCliente->id_cliente, auxCliente->nome, auxCliente->cpf, auxCliente->telefone, auxCliente->municipio, auxCliente->estado, auxCliente->saldo);
-       auxCliente = auxCliente->prox; // Vai para a proxima posição da lista
-    }
-    printf("-----------------------------------------------------------------------------------------------------------------------\n");
-    while(auxConta != NULL){ // Percorre a lista de contas
-       printf("| ID da Conta: %d | Numero: %d | Variacao: %d | ID do Cliente: %d |\n", auxConta->id_conta, auxConta->numero_conta, auxConta->variacao, auxConta->id_cliente_conta);
-       auxConta = auxConta->prox; // Vai para a proxima posição da lista
-    }
-    printf("-----------------------------------------------------------------------------------------------------------------------\n");
-    while(auxOperacao != NULL){ // Percorre a lista de operacoes
-       printf("| ID da Operacao: %d | Nome: %s |\n", auxOperacao->id_operacao, auxOperacao->nome_operacao);
-       auxOperacao = auxOperacao->prox; // Vai para a proxima posição da lista
-    }
-    printf("-----------------------------------------------------------------------------------------------------------------------\n");
-    while(auxTransacoes != NULL){ // Percorre a lista de transacoes
-       printf("| Data: %d/%d/%d | ID da Operacao: %d | ID Conta Origem: %d | ID Conta Destino: %d | Valor: %.2lf |\n", auxTransacoes->data.tm_mday, auxTransacoes->data.tm_mon, auxTransacoes->data.tm_year, auxTransacoes->id_operacao_trans, auxTransacoes->id_conta_origem, auxTransacoes->id_conta_destino, auxTransacoes->valor_trans);
-       auxTransacoes = auxTransacoes->prox; // Vai para a proxima posição da lista
-    }
-    printf("-----------------------------------------------------------------------------------------------------------------------\n");
-    while(auxTransCard != NULL){ // Percorre a lista de transacoes do cartao
-       printf("| Data da compra: %d/%d/%d | ID da conta: %d | Descricao: %s | Quantidade de parcelas: %d | Valor: %.2lf |\n", auxTransCard->data_compra.tm_mday, auxTransCard->data_compra.tm_mon, auxTransCard->data_compra.tm_year, auxTransCard->id_conta_trans_cc, auxTransCard->descricao, auxTransCard->qtde_parcelas, auxTransCard->valor_trans_cc);
-       auxTransCard = auxTransCard->prox; // Vai para a proxima posição da lista
-    }
-    printf("-----------------------------------------------------------------------------------------------------------------------\n");
-
-    // Sai da função após digitar algo
-    printf("\nDigite algum numero para sair: ");
-    scanf("%s", x);
-    return;
-}
-
-// Filtragem de clientes por estado
-void listar_clientes_estado(struct Cliente *listaCliente, struct Conta *listaConta, char estado[]){
-
-    system("cls"); // Limpar tela do cmd
-
-    // Declaração de variável
-    char x[MAX];
-
-    // Criação de uma lista auxiliar
-    struct Cliente *auxCliente = listaCliente->prox;
-    struct Conta *auxConta = listaConta->prox;
 
     while(auxCliente != NULL){ // Percorre a lista de clientes
-        auxCliente->quant_conta = 0; // Atribui a quantidade de contas do cliente para 0
-        if(strcmp(estado,auxCliente->estado)==0){ // Filtro de estado
-            auxConta = listaConta->prox; // Vai para o inicio da lista de contas
-            while(auxConta != NULL){ // Percorre a lista de contas
-                if(auxConta->id_cliente_conta == auxCliente->id_cliente){ // Filtro de conta
-                    auxCliente->quant_conta++; // Faz a atribuição da quantidade de contas do cliente
-                }
-            auxConta = auxConta->prox; // Vai para a proxima posição da lista
-            }
-            // Ebixe o resultado da pesquisa
-            printf("| ID: %d | Nome: %s | CPF: %s | Telefone: %s | Municipio: %s | Estado %s | Quantidade de contas: %d\n", auxCliente->id_cliente, auxCliente->nome, auxCliente->cpf, auxCliente->telefone, auxCliente->municipio, auxCliente->estado, auxCliente->quant_conta);
-        }
-        auxCliente = auxCliente->prox; // Vai para a proxima posição da lista
-    }
-
-    // Sai da função após digitar algo
-    printf("\nDigite algum numero para sair: ");
-    scanf("%s", x);
-    return;
-}
-
-// Exibição de saldo total atual do cliente filtrado
-void exibir_saldo_atual(struct Cliente *listaCliente, struct Conta *listaConta, struct Transacoes *listaTransacoes, char cpf[]){
-
-    // Declaração de variável
-    char x[MAX];
-    double saldo = 0;
-    double saldo_part = 0;
-
-    // Criação de listas auxiliares
-    struct Cliente *auxCliente = listaCliente->prox;
-    struct Cliente *auxClienteAux = listaCliente->prox;
-    struct Conta *auxContaAux = listaConta->prox;
-    struct Transacoes *auxTransacoesAux = listaTransacoes->prox;
-
-
-    // Laço para exibir o saldo total do cliente filtrado
-    while(auxCliente != NULL){ // Percorre a lista de clientes
-        if(!strcmp(cpf,auxCliente->cpf)){ // Filtro de CPF
-            printf("-----------------------------------------------------------------------------------------------------------------------\n");
-            printf("| Nome: %s | Valor: %.2lf |\n", auxCliente->nome, auxCliente->saldo);
-            printf("-----------------------------------------------------------------------------------------------------------------------\n");
-        }
-        auxCliente = auxCliente->prox; // Vai para a proxima posição da lista
-    }
-
-
-    // Laço para exibir cada conta do cliente filtrado
-    while(auxClienteAux != NULL){ // Percorre a lista de contas
-        if(!strcmp(cpf,auxClienteAux->cpf)){ // Filtro de CPF
-            while(auxContaAux != NULL){ // Percorre a lista de clientes
-                if(auxContaAux->id_cliente_conta == auxClienteAux->id_cliente){ // Filtro de conta
-                    auxTransacoesAux = listaTransacoes->prox; // Vai para o inicio da lista
-                    saldo_part = 0; // Reseta o valor da variavel
-                    while(auxTransacoesAux != NULL){ // Percorre a lista de transacões
-                        if(auxTransacoesAux->id_conta_origem == auxContaAux->id_conta){ // Veifica se a conta é destino ou origem
-                            saldo_part-=auxTransacoesAux->valor_trans;
-                        }
-                        if(auxTransacoesAux->id_conta_destino == auxContaAux->id_conta){ // Verifica se a conta é destino ou origem
-                            saldo_part+=auxTransacoesAux->valor_trans;
-                        }
-                        auxTransacoesAux = auxTransacoesAux->prox; // Vai para a proxima posição da lista
+        auxConta = listaConta->prox; // Vai para o inicio da lista de contas
+        while(auxConta != NULL){ // Percorre a lista de contas
+            if(auxConta->id_cliente_conta == auxCliente->id_cliente){ // Filtro de conta
+                auxTransacoes = listaTransacoes->prox; // Vai para o inicio da lista de transacoes
+                while(auxTransacoes != NULL){ // Percorre a lista de transacoes
+                    if(auxTransacoes->id_conta_origem == auxConta->id_conta){ // Verifica se a conta é origem
+                        saldo-=auxTransacoes->valor_trans;
+                        saldo_conta-=auxTransacoes->valor_trans;
                     }
-                    printf("| Numero da conta: %d | Variacao: %d | Valor: %.2lf |\n", auxContaAux->numero_conta, auxContaAux->variacao ,saldo_part);
+                    if(auxTransacoes->id_conta_destino == auxConta->id_conta){ // Verifica se a conta é destino
+                        saldo+=auxTransacoes->valor_trans;
+                        saldo_conta+=auxTransacoes->valor_trans;
+                    }
+                    auxTransacoes = auxTransacoes->prox; // Vai para a proxima posicao da lista
                 }
-                auxContaAux = auxContaAux->prox; // Vai para a proxima posição da lista
             }
+            auxConta->saldo_conta = saldo_conta; // Atribui o saldo para cada conta
+            auxConta = auxConta->prox; // Vai para a proxima posicao da lista
+            saldo_conta = 0; // Reseta o saldo para a proxima conta
         }
-        auxClienteAux = auxClienteAux->prox; // Vai para a proxima posição da lista
+        auxCliente->saldo = saldo; // Atribui o saldo para cada cliente
+        auxCliente = auxCliente->prox; // Vai para a proxima posicao da lista
+        saldo = 0; // Reseta o saldo para o proximo cliente
     }
-    printf("-----------------------------------------------------------------------------------------------------------------------\n");
-
-    // Sai da função após digitar qualquer coisa
-    printf("\nDigite algum numero para sair: ");
-    scanf("%s", x);
-    return;
 }
 
 // Ordenação dos clientes pelo saldo
@@ -344,68 +240,131 @@ void ordenar_saldo(struct Cliente *listaCliente){
     }
 }
 
-// Converta a data em mes
-int converter_para_mes(int mes , int ano){
-    return mes + ano*12;
+// Ordenação de data das transações
+void ordenar_transacoes_data(struct Transacoes *listaTransacoes){
+
+    // Criação de um nó final nulo
+    struct Transacoes *noFim = NULL;
+
+    while(listaTransacoes->prox != noFim){ // Percorre a lista de transacoes enquanto for diferente do no final
+        struct Transacoes *antAux = listaTransacoes; // Criação de uma lista auxiliar para valores anteriores
+        struct Transacoes *aux = listaTransacoes->prox; // Criação de uma lista auxiliar
+        while(aux->prox != noFim){ // Percorre a lista auxiliar
+            if(converter_para_dia(aux->data) > converter_para_dia(aux->prox->data)){ // Verificação de posições e troca
+                struct Transacoes *auxTroca = aux;
+                aux = aux->prox;
+                auxTroca->prox = auxTroca->prox->prox;
+                antAux->prox = aux;
+                aux->prox = auxTroca;
+                antAux = aux;
+                aux = auxTroca;
+            }
+            else{
+                antAux = aux;
+                aux = aux->prox;
+            }
+        }
+        noFim = aux;
+    }
+
 }
 
-// Exibição da fatura de um cliente
-void fatura_cartao(struct Cliente *listaCliente, struct Conta *listaConta, struct Transacoes_cartao_credito *listaTransCard, char cpf[], int data_mes, int data_ano){
+void ordenar_transacoes_cartao_data(struct Transacoes_cartao_credito *listaTransCard){
+
+    // Criação de um nó final nulo
+    struct Transacoes_cartao_credito *noFim = NULL;
+
+    while(listaTransCard->prox != noFim){ // Percorre a lista de transacoes do cartao enquanto for diferente do no final
+        struct Transacoes_cartao_credito *antAux = listaTransCard; // Criação de uma lista auxiliar para valores anteriores
+        struct Transacoes_cartao_credito *aux = listaTransCard->prox; // Criação de uma lista auxiliar
+        while(aux->prox != noFim){ // Percorre a lista auxiliar
+            if(converter_para_dia(aux->data_compra) > converter_para_dia(aux->prox->data_compra)){ // Verificação de posições e troca
+                struct Transacoes_cartao_credito *auxTroca = aux;
+                aux = aux->prox;
+                auxTroca->prox = auxTroca->prox->prox;
+                antAux->prox = aux;
+                aux->prox = auxTroca;
+                antAux = aux;
+                aux = auxTroca;
+            }
+            else{
+                antAux = aux;
+                aux = aux->prox;
+            }
+        }
+        noFim = aux;
+    }
+
+}
+
+// Filtragem de clientes por estado
+void listar_clientes_estado(struct Cliente *listaCliente, struct Conta *listaConta, char estado[]){
+
+    system("cls"); // Limpar tela do cmd
 
     // Declaração de variável
     char x[MAX];
-    int parcela = 0, parcela_mes_main = converter_para_mes(data_mes, data_ano), cont = 0;
-    double total = 0;
-    FILE *arquivo_fatura;
+    int var = 0;
+
+    // Criação de uma lista auxiliar
+    struct Cliente *auxCliente = listaCliente->prox;
+    struct Conta *auxConta = listaConta->prox;
+
+    while(auxCliente != NULL){ // Percorre a lista de clientes
+        auxCliente->quant_conta = 0; // Atribui a quantidade de contas do cliente para 0
+        if(strcmp(estado,auxCliente->estado)==0){ // Filtro de estado
+            auxConta = listaConta->prox; // Vai para o inicio da lista de contas
+            while(auxConta != NULL){ // Percorre a lista de contas
+                if(auxConta->id_cliente_conta == auxCliente->id_cliente){ // Filtro de conta
+                    auxCliente->quant_conta++; // Faz a atribuição da quantidade de contas do cliente
+                }
+            auxConta = auxConta->prox; // Vai para a proxima posição da lista
+            }
+            // Ebixe o resultado da pesquisa
+            printf("| ID: %d | Nome: %s | CPF: %s | Telefone: %s | Municipio: %s | Estado: %s | Quantidade de contas: %d\n", auxCliente->id_cliente, auxCliente->nome, auxCliente->cpf, auxCliente->telefone, auxCliente->municipio, auxCliente->estado, auxCliente->quant_conta);
+            var = 1;
+        }
+        auxCliente = auxCliente->prox; // Vai para a proxima posição da lista
+    }
+    if(var==0){
+        printf("Estado nao encontrado.\n");
+    }
+
+    // Sai da função após digitar algo
+    printf("\nDigite algum numero para sair: ");
+    scanf("%s", x);
+    return;
+}
+
+// Exibição de saldo total atual do cliente filtrado
+void exibir_saldo_atual(struct Cliente *listaCliente, struct Conta *listaConta, struct Transacoes *listaTransacoes, char cpf[]){
+
+    // Declaração de variável
+    char x[MAX];
 
     // Criação de listas auxiliares
     struct Cliente *auxCliente = listaCliente->prox;
     struct Conta *auxConta = listaConta->prox;
-    struct Transacoes_cartao_credito *auxTransCard = listaTransCard->prox;
+    struct Transacoes *auxTransacoes = listaTransacoes->prox;
 
-    while(auxCliente != NULL){ // Percorre a lista de clients
+    // Laço para exibir cada conta do cliente filtrado
+    while(auxCliente != NULL){ // Percorre a lista de contas
         if(!strcmp(cpf,auxCliente->cpf)){ // Filtro de CPF
-            printf("Cliente: %s\n", auxCliente->nome); // Exibe o cliente e logo em seguida escreve no arquivo
-            arquivo_fatura = fopen("Fatura.txt", "w");
-            fprintf(arquivo_fatura, "Cliente: %s\n", auxCliente->nome);
-            while(auxConta != NULL){ // Percorre a lista de contas
-                auxTransCard = listaTransCard->prox; // Vai para o inicio da lista de transacoes
-                while(auxTransCard != NULL){ // Percorre a lista de transacoes, calcula as transacoes, as exibe e em seguida escreve no arquivo
-                    int parcela_mes_func = converter_para_mes(auxTransCard->data_compra.tm_mon, auxTransCard->data_compra.tm_year);
-                    if(auxConta->id_conta == auxTransCard->id_conta_trans_cc && auxCliente->id_cliente == auxConta->id_cliente_conta && (parcela_mes_main - parcela_mes_func) <= auxTransCard->qtde_parcelas){
-                        if(cont == 0){
-                            printf("\nConta: %d\n\n", auxConta->numero_conta);
-                            fprintf(arquivo_fatura, "\nConta: %d\n\n", auxConta->numero_conta);
-                            cont = 1;
-                        }
-                        parcela = parcela_mes_main - parcela_mes_func;
-                        if(parcela>0){
-                            printf("Data: %d/%d/%d | Descricao: %s | Valor: %.2lf | Parcela %d/%d\n",auxTransCard->data_compra.tm_mday, auxTransCard->data_compra.tm_mon, auxTransCard->data_compra.tm_year, auxTransCard->descricao, auxTransCard->valor_trans_cc/auxTransCard->qtde_parcelas, parcela, auxTransCard->qtde_parcelas);
-                            total+=auxTransCard->valor_trans_cc/auxTransCard->qtde_parcelas;
-
-                            fprintf(arquivo_fatura, "Data: %d/%d/%d | Descricao: %s | Valor: %.2lf | Parcela %d/%d\n",auxTransCard->data_compra.tm_mday, auxTransCard->data_compra.tm_mon, auxTransCard->data_compra.tm_year, auxTransCard->descricao, auxTransCard->valor_trans_cc, parcela, auxTransCard->qtde_parcelas);
-                        }
-                    }
-                auxTransCard = auxTransCard->prox; // Vai para a proxima posição da lista
+            printf("Nome: %s | Saldo total: %.2lf\n\n", auxCliente->nome, auxCliente->saldo);
+            while(auxConta!= NULL){ // Percorre a lista de clientes
+                if(auxConta->id_cliente_conta == auxCliente->id_cliente){ // Filtro de conta
+                    printf("Numero da conta: %d | Variacao: %d | Valor: %.2lf\n", auxConta->numero_conta, auxConta->variacao , auxConta->saldo_conta);
                 }
-            auxConta = auxConta->prox; // Vai para a proxima posição da lista
-            cont = 0; // Reseta o contador
+                auxConta = auxConta->prox; // Vai para a proxima posição da lista
             }
         }
-    auxCliente = auxCliente->prox; // Vai para a proxima posição da lista
+        auxCliente = auxCliente->prox; // Vai para a proxima posição da lista
     }
-    printf("\nValor total: %.2lf\n", total); // Exibe o valor total e minimo e em seguida os escreve no arquivo
-    printf("Valor minimo: %.2lf\n", total/10);
-    fprintf(arquivo_fatura, "\nValor total: %.2lf\n", total);
-    fprintf(arquivo_fatura, "Valor minimo: %.2lf\n", total/10);
-    fclose(arquivo_fatura);
-
 
     // Sai da função após digitar qualquer coisa
     printf("\nDigite algum numero para sair: ");
     scanf("%s", x);
     return;
-
 }
 
 // Listagem do saldo atual de todos os clientes
@@ -429,129 +388,23 @@ void listagem_saldo_atual(struct Cliente *listaCliente){
     return;
 }
 
-// Pega o tempo real em segundos e faz a converção para o tempo real e a coloca na struct tm
-struct tm *mesAtual(){
-
-    // Struct para armazenar dados sobre a data e hora
-    struct tm *mes_atual_;
-
-    // Pega o tempo real em segundos
-    time_t segundos;
-    time(&segundos);
-    mes_atual_ = localtime(&segundos);
-
-    // Conversão para mes e ano
-    mes_atual_->tm_mon += 1;
-    mes_atual_->tm_year += 1900;
-
-return mes_atual_;
-}
-
 // Exibe o extrato do mes atual
 void extrato_mes_atual(struct Cliente *listaCliente, struct Conta *listaConta, struct Transacoes *listaTransacoes, char cpf[], int numero_conta){
 
     // Declaração de variável
-    double saldo = 0, saldo_perdido = 0, saldo_mes_anterior = 0, saldo_mes_atual = 0;
     struct tm *mes_atual = mesAtual();
     char x[MAX];
-    int cont = 0, cont_ = 0;
-
+    
     // Criação de listas auxiliares (mes atual)
     struct Cliente *auxCliente = listaCliente->prox;
     struct Conta *auxConta = listaConta->prox;
     struct Transacoes *auxTransacoes = listaTransacoes->prox;
 
-    // Criação de listas auxiliares (mes anterior)
-    struct Cliente *auxClienteMesAnt = listaCliente->prox;
-    struct Conta *auxContaMesAnt = listaConta->prox;
-    struct Transacoes *auxTransacoesMesAnt = listaTransacoes->prox;
-
-    // Laço para exibir o saldo do mes anterior
-    // Mes anterior
-    while(auxClienteMesAnt != NULL){ // Percorre a lista de clientes
-        if(!strcmp(cpf,auxClienteMesAnt->cpf)){ // Filtro de CPF
-            while(auxContaMesAnt != NULL){ // Percorre a lista de contas
-                if(numero_conta == auxContaMesAnt->numero_conta){ // Filtro de conta
-                    if(auxContaMesAnt->id_cliente_conta == auxClienteMesAnt->id_cliente){ // Filtro de cliente
-                        auxTransacoesMesAnt = listaTransacoes->prox; // Vai para o inicio da lista de transacoes
-                        while(auxTransacoesMesAnt != NULL){ // Percorre a lista de eransacoes
-                            if(auxTransacoesMesAnt->id_conta_origem == auxContaMesAnt->id_conta){ // Verificação de origem e destino
-                                if(mes_atual->tm_mon > auxTransacoesMesAnt->data.tm_mon){
-                                    saldo_mes_anterior-=auxTransacoesMesAnt->valor_trans;
-                                }
-                            }
-                            if(auxTransacoesMesAnt->id_conta_destino == auxContaMesAnt->id_conta){ // Verificação de origem e destino
-                                if(mes_atual->tm_mon > auxTransacoesMesAnt->data.tm_mon){
-                                    saldo_mes_anterior+=auxTransacoesMesAnt->valor_trans;
-                                }
-                            }
-                            auxTransacoesMesAnt = auxTransacoesMesAnt->prox; // Vai para a proxima posicao da lista
-                        }
-                    }
-                }
-                auxContaMesAnt = auxContaMesAnt->prox; // Vai para a proxima posicao da lista
-            }
+    while(auxCliente != NULL){
+        if(!strcmp(cpf, auxCliente->cpf)){
+            
         }
-        auxClienteMesAnt = auxClienteMesAnt->prox; // Vai para a proxima posicao da lista
     }
-    printf("Saldo do mes anterior: %.2lf\n\n", saldo_mes_anterior);
-
-    // Laço para exibir o saldo e as transacoes do mes atual
-    // Mes atual
-    while(auxCliente != NULL){ // Percorre a lista de clientes
-        if(!strcmp(cpf,auxCliente->cpf)){ // Filtro de CPF
-            while(auxConta != NULL){ // Percorre a lista de contas
-                if(numero_conta == auxConta->numero_conta){ // Filtro de conta
-                    if(cont_ == 0){ // Exibe os dados do cliente apenas uma vez
-                        printf("Nome: %s | CPF: %s | Conta: %d\n\n", auxCliente->nome, auxCliente->cpf, auxConta->numero_conta);
-                        cont_ = 1;
-                    }
-                    if(auxConta->id_cliente_conta == auxCliente->id_cliente){ // Filtro de cliente
-                        auxTransacoes = listaTransacoes->prox; // Vai para o inicio da lista de transacoes
-                        while(auxTransacoes != NULL){ // Percorre a lista de transacoes
-                            if(auxTransacoes->id_conta_origem == auxConta->id_conta){ // Verificação de origem e destino
-                                saldo-=auxTransacoes->valor_trans;
-                                saldo_perdido-=auxTransacoes->valor_trans;
-                                if(mes_atual->tm_mon == auxTransacoes->data.tm_mon){
-                                    saldo_mes_atual-=auxTransacoes->valor_trans;
-                                    if(saldo_perdido!=0){
-                                        printf("Data: %d/%d/%d | Variacao: %d | Valor: %.2lf\n", auxTransacoes->data.tm_mday, auxTransacoes->data.tm_mon, auxTransacoes->data.tm_year, auxConta->variacao, saldo_perdido);
-                                        saldo_perdido = 0;
-                                        cont = 1;
-                                    }
-                                    if(saldo!=0){
-                                        printf("Data: %d/%d/%d | Variacao: %d | Valor: %.2lf\n", auxTransacoes->data.tm_mday, auxTransacoes->data.tm_mon, auxTransacoes->data.tm_year, auxConta->variacao, saldo);
-                                        cont = 1;
-                                    }
-                                }
-                            }
-                            if(auxTransacoes->id_conta_destino == auxConta->id_conta){ // Verificação de origem e destino
-                                saldo+=auxTransacoes->valor_trans;
-                                if(mes_atual->tm_mon == auxTransacoes->data.tm_mon){
-                                    saldo_mes_atual+=auxTransacoes->valor_trans;
-                                    if(saldo!=0){
-                                        printf("Data: %d/%d/%d | Variacao: %d | Valor: %.2lf\n", auxTransacoes->data.tm_mday, auxTransacoes->data.tm_mon, auxTransacoes->data.tm_year, auxConta->variacao, saldo);
-                                        cont = 1;
-                                    }
-                                }
-                            }
-                            auxTransacoes = auxTransacoes->prox; // Vai para a proxima posicao da lista
-                        }
-                    }
-                    saldo = 0;
-                }
-                auxConta = auxConta->prox; // Vai para a proxima posicao da lista
-            }
-        }
-        auxCliente = auxCliente->prox; // Vai para a proxima posicao da lista
-    }
-
-    // Exibido se não tiverem sido feitas trasacoes neste mes
-    if(cont==0){
-        printf("Nao foram feitas transacoes neste mes\n");
-    }
-
-    printf("\nSaldo do mes atual: %.2lf \n", saldo_mes_atual);
 
     // Sai da função após digitar qualquer coisa
     printf("\nDigite algum numero para sair: ");
@@ -560,7 +413,7 @@ void extrato_mes_atual(struct Cliente *listaCliente, struct Conta *listaConta, s
 }
 
 // Exibe o extrato do mes anterior
-void extrato_mes_anterior(struct Cliente *listaCliente, struct Conta *listaConta, struct Transacoes *listaTransacoes, char cpf[], int numero_conta, int data_mes, int data_ano){
+/*void extrato_mes_anterior(struct Cliente *listaCliente, struct Conta *listaConta, struct Transacoes *listaTransacoes, char cpf[], int numero_conta, int data_mes, int data_ano){
 
     // Declaração de variável
     double saldo_mes_anterior = 0, saldo_mes_anterior_ = 0, saldo_atual = 0, saldo_global = 0;
@@ -698,74 +551,117 @@ void extrato_mes_anterior(struct Cliente *listaCliente, struct Conta *listaConta
     printf("\nDigite algum numero para sair: ");
     scanf("%s", x);
     return;
-}
+}*/
 
-// Converte a data para dias
-int converter_para_dia(struct tm data_dia){
-    return(data_dia.tm_year*365+data_dia.tm_mon*30+data_dia.tm_mday);
-}
+// Exibição da fatura de um cliente
+void fatura_cartao(struct Cliente *listaCliente, struct Conta *listaConta, struct Transacoes_cartao_credito *listaTransCard, char cpf[], int data_mes, int data_ano){
 
-// Ordenação de data das transações
-void ordenar_transacoes_data(struct Transacoes *listaTransacoes){
+    // Declaração de variável
+    char x[MAX];
+    int parcela = 0, parcela_mes_main = converter_para_mes(data_mes, data_ano), cont = 0;
+    double total = 0;
+    FILE *arquivo_fatura;
 
-    // Criação de um nó final nulo
-    struct Transacoes *noFim = NULL;
+    // Criação de listas auxiliares
+    struct Cliente *auxCliente = listaCliente->prox;
+    struct Conta *auxConta = listaConta->prox;
+    struct Transacoes_cartao_credito *auxTransCard = listaTransCard->prox;
 
-    while(listaTransacoes->prox != noFim){ // Percorre a lista de transacoes enquanto for diferente do no final
-        struct Transacoes *antAux = listaTransacoes; // Criação de uma lista auxiliar para valores anteriores
-        struct Transacoes *aux = listaTransacoes->prox; // Criação de uma lista auxiliar
-        while(aux->prox != noFim){ // Percorre a lista auxiliar
-            if(converter_para_dia(aux->data) > converter_para_dia(aux->prox->data)){ // Verificação de posições e troca
-                struct Transacoes *auxTroca = aux;
-                aux = aux->prox;
-                auxTroca->prox = auxTroca->prox->prox;
-                antAux->prox = aux;
-                aux->prox = auxTroca;
-                antAux = aux;
-                aux = auxTroca;
-            }
-            else{
-                antAux = aux;
-                aux = aux->prox;
-            }
-        }
-        noFim = aux;
-    }
+    while(auxCliente != NULL){ // Percorre a lista de clients
+        if(!strcmp(cpf,auxCliente->cpf)){ // Filtro de CPF
+            printf("Cliente: %s\n", auxCliente->nome); // Exibe o cliente e logo em seguida escreve no arquivo
+            arquivo_fatura = fopen("Fatura.txt", "w");
+            fprintf(arquivo_fatura, "Cliente: %s\n", auxCliente->nome);
+            while(auxConta != NULL){ // Percorre a lista de contas
+                auxTransCard = listaTransCard->prox; // Vai para o inicio da lista de transacoes
+                while(auxTransCard != NULL){ // Percorre a lista de transacoes, calcula as transacoes, as exibe e em seguida escreve no arquivo
+                    int parcela_mes_func = converter_para_mes(auxTransCard->data_compra.tm_mon, auxTransCard->data_compra.tm_year);
+                    if(auxConta->id_conta == auxTransCard->id_conta_trans_cc && auxCliente->id_cliente == auxConta->id_cliente_conta && (parcela_mes_main - parcela_mes_func) <= auxTransCard->qtde_parcelas){
+                        if(cont == 0){
+                            printf("\nConta: %d\n\n", auxConta->numero_conta);
+                            fprintf(arquivo_fatura, "\nConta: %d\n\n", auxConta->numero_conta);
+                            cont = 1;
+                        }
+                        parcela = parcela_mes_main - parcela_mes_func;
+                        if(parcela>0){
+                            printf("Data: %d/%d/%d | Descricao: %s | Valor: %.2lf | Parcela %d/%d\n",auxTransCard->data_compra.tm_mday, auxTransCard->data_compra.tm_mon, auxTransCard->data_compra.tm_year, auxTransCard->descricao, auxTransCard->valor_trans_cc/auxTransCard->qtde_parcelas, parcela, auxTransCard->qtde_parcelas);
+                            total+=auxTransCard->valor_trans_cc/auxTransCard->qtde_parcelas;
 
-}
-
-void ordenar_transacoes_cartao_data(struct Transacoes_cartao_credito *listaTransCard){
-
-    // Criação de um nó final nulo
-    struct Transacoes_cartao_credito *noFim = NULL;
-
-    while(listaTransCard->prox != noFim){ // Percorre a lista de transacoes do cartao enquanto for diferente do no final
-        struct Transacoes_cartao_credito *antAux = listaTransCard; // Criação de uma lista auxiliar para valores anteriores
-        struct Transacoes_cartao_credito *aux = listaTransCard->prox; // Criação de uma lista auxiliar
-        while(aux->prox != noFim){ // Percorre a lista auxiliar
-            if(converter_para_dia(aux->data_compra) > converter_para_dia(aux->prox->data_compra)){ // Verificação de posições e troca
-                struct Transacoes_cartao_credito *auxTroca = aux;
-                aux = aux->prox;
-                auxTroca->prox = auxTroca->prox->prox;
-                antAux->prox = aux;
-                aux->prox = auxTroca;
-                antAux = aux;
-                aux = auxTroca;
-            }
-            else{
-                antAux = aux;
-                aux = aux->prox;
+                            fprintf(arquivo_fatura, "Data: %d/%d/%d | Descricao: %s | Valor: %.2lf | Parcela %d/%d\n",auxTransCard->data_compra.tm_mday, auxTransCard->data_compra.tm_mon, auxTransCard->data_compra.tm_year, auxTransCard->descricao, auxTransCard->valor_trans_cc, parcela, auxTransCard->qtde_parcelas);
+                        }
+                    }
+                auxTransCard = auxTransCard->prox; // Vai para a proxima posição da lista
+                }
+            auxConta = auxConta->prox; // Vai para a proxima posição da lista
+            cont = 0; // Reseta o contador
             }
         }
-        noFim = aux;
+    auxCliente = auxCliente->prox; // Vai para a proxima posição da lista
     }
+    printf("\nValor total: %.2lf\n", total); // Exibe o valor total e minimo e em seguida os escreve no arquivo
+    printf("Valor minimo: %.2lf\n", total/10);
+    fprintf(arquivo_fatura, "\nValor total: %.2lf\n", total);
+    fprintf(arquivo_fatura, "Valor minimo: %.2lf\n", total/10);
+    fclose(arquivo_fatura);
 
+
+    // Sai da função após digitar qualquer coisa
+    printf("\nDigite algum numero para sair: ");
+    scanf("%s", x);
+    return;
+
+}
+
+// Função para imprimir a lista de todos os clientes
+void imprimir_lista(struct Cliente *listaCliente, struct Conta *listaConta, struct Operacao *listaOperacao, struct Transacoes *listaTransacoes, struct Transacoes_cartao_credito *listaTransCard){
+
+    char x[MAX];
+
+    // Criação de listas auxiliares
+    struct Cliente *auxCliente = listaCliente->prox;
+    struct Conta *auxConta = listaConta->prox;
+    struct Operacao *auxOperacao = listaOperacao->prox;
+    struct Transacoes *auxTransacoes = listaTransacoes->prox;
+    struct Transacoes_cartao_credito *auxTransCard = listaTransCard->prox;
+
+    // Laço para exibição das listas
+    printf("-----------------------------------------------------------------------------------------------------------------------\n");
+    while(auxCliente != NULL){ // Percorre a lista de clientes
+       printf("| ID: %d | Nome: %s | CPF: %s | Telefone: %s | Municipio: %s | Estado: %s |\n", auxCliente->id_cliente, auxCliente->nome, auxCliente->cpf, auxCliente->telefone, auxCliente->municipio, auxCliente->estado, auxCliente->saldo);
+       auxCliente = auxCliente->prox; // Vai para a proxima posição da lista
+    }
+    printf("-----------------------------------------------------------------------------------------------------------------------\n");
+    while(auxConta != NULL){ // Percorre a lista de contas
+       printf("| ID da Conta: %d | Numero: %d | Variacao: %d | ID do Cliente: %d |\n", auxConta->id_conta, auxConta->numero_conta, auxConta->variacao, auxConta->id_cliente_conta);
+       auxConta = auxConta->prox; // Vai para a proxima posição da lista
+    }
+    printf("-----------------------------------------------------------------------------------------------------------------------\n");
+    while(auxOperacao != NULL){ // Percorre a lista de operacoes
+       printf("| ID da Operacao: %d | Nome: %s |\n", auxOperacao->id_operacao, auxOperacao->nome_operacao);
+       auxOperacao = auxOperacao->prox; // Vai para a proxima posição da lista
+    }
+    printf("-----------------------------------------------------------------------------------------------------------------------\n");
+    while(auxTransacoes != NULL){ // Percorre a lista de transacoes
+       printf("| Data: %d/%d/%d | ID da Operacao: %d | ID Conta Origem: %d | ID Conta Destino: %d | Valor: %.2lf |\n", auxTransacoes->data.tm_mday, auxTransacoes->data.tm_mon, auxTransacoes->data.tm_year, auxTransacoes->id_operacao_trans, auxTransacoes->id_conta_origem, auxTransacoes->id_conta_destino, auxTransacoes->valor_trans);
+       auxTransacoes = auxTransacoes->prox; // Vai para a proxima posição da lista
+    }
+    printf("-----------------------------------------------------------------------------------------------------------------------\n");
+    while(auxTransCard != NULL){ // Percorre a lista de transacoes do cartao
+       printf("| Data da compra: %d/%d/%d | ID da conta: %d | Descricao: %s | Quantidade de parcelas: %d | Valor: %.2lf |\n", auxTransCard->data_compra.tm_mday, auxTransCard->data_compra.tm_mon, auxTransCard->data_compra.tm_year, auxTransCard->id_conta_trans_cc, auxTransCard->descricao, auxTransCard->qtde_parcelas, auxTransCard->valor_trans_cc);
+       auxTransCard = auxTransCard->prox; // Vai para a proxima posição da lista
+    }
+    printf("-----------------------------------------------------------------------------------------------------------------------\n");
+
+    // Sai da função após digitar algo
+    printf("\nDigite algum numero para sair: ");
+    scanf("%s", x);
+    return;
 }
 
 int main(){
 
     // Criação de variaveis
-    int x, i=0, id_cliente, id_conta, numero_conta, variacao, id_cliente_conta, id_operacao, id_operacao_trans, id_conta_origem, id_conta_destino, id_conta_trans_cc, qtde_parcelas, data_dia, data_mes, data_ano, data_compra_dia, data_compra_mes, data_compra_ano;
+    int x, i = 0, id_cliente, id_conta, numero_conta, variacao, id_cliente_conta, id_operacao, id_operacao_trans, id_conta_origem, id_conta_destino, id_conta_trans_cc, qtde_parcelas, data_dia, data_mes, data_ano, data_compra_dia, data_compra_mes, data_compra_ano;
     char nome[MAX], cpf[MAX], telefone[MAX], municipio[MAX], estado[MAX], aux[MAX], nome_operacao[MAX], descricao[MAX];
     double valor_trans, valor_trans_cc;
 
@@ -787,12 +683,12 @@ int main(){
 
     // Leitura do arquivo
     FILE *arquivo;
-    arquivo = fopen("arquivo.txt", "r");
+    arquivo = fopen("Dados.txt", "r");
 
     fscanf(arquivo, "%s\n", aux);
     while(fscanf(arquivo, "%d, %[^,], %[^,], %[^,], %[^,], %[^;];\n", &id_cliente, nome, cpf, telefone, municipio, estado) == 6){
         printf("\rLendo clientes -> %d de 500", i+1);
-        inserir_cliente_ordenado(listaCliente, id_cliente, nome, cpf, telefone, municipio, estado);
+        inserir_dados_cliente(listaCliente, id_cliente, nome, cpf, telefone, municipio, estado);
         i++;
         if(i==500){
             printf("\rClientes lidos -> %d de 500\n                ", i);
@@ -854,14 +750,14 @@ int main(){
     printf("Saldo ordenado.\n");
 
     // Ordena a lista em ordem crescente de clientes de acordo com a data das transacoes
-    printf("Ordenando data das transacoes.\n");
+    /*printf("Ordenando data das transacoes.\n");
     ordenar_transacoes_data(listaTransacoes);
     printf("Data ordenada.\n");
 
     // Ordena a lista em ordem crescente de clientes de acordo com a data das transacoes
     printf("Ordenando data das transacoes do cartao.\n");
     ordenar_transacoes_cartao_data(listaTransCard);
-    printf("Data ordenada.\n");
+    printf("Data ordenada.\n");*/
 
     system("cls"); // Limpa o cmd
 
@@ -913,7 +809,7 @@ int main(){
             system("cls");
             extrato_mes_atual(listaCliente, listaConta, listaTransacoes, cpf, numero_conta);
         }
-        else if(x==5){
+        /*else if(x==5){
             system("cls");
             printf("Digite o CPF do cliente:\n");
             scanf("%s", cpf);
@@ -935,7 +831,7 @@ int main(){
             scanf("%d/%d", &data_mes, &data_ano);
             system("cls");
             fatura_cartao(listaCliente, listaConta, listaTransCard, cpf, data_mes, data_ano);
-        }
+        }*/
         else if(x==7){
             system("cls");
             imprimir_lista(listaCliente, listaConta, listaOperacao, listaTransacoes, listaTransCard);
