@@ -1,0 +1,9 @@
+Cliente: Carlos Antonio
+
+Conta: 12345
+
+Data: 1/10/2016 | Descricao: Saraiva SP | Valor: 52.50 | Parcela 1/1
+Data: 1/10/2016 | Descricao: Americanas SP | Valor: 299.00 | Parcela 1/2
+
+Valor total: 202.00
+Valor minimo: 20.20
