@@ -399,7 +399,7 @@ void listagem_saldo_atual(struct Cliente *listaCliente){
 }
 
 // Exibe o extrato do mes atual
-void extrato_mes_atual(struct Cliente *listaCliente, struct Conta *listaConta, struct Operacao *listaOperacao ,struct Transacoes *listaTransacoes, char cpf[], int numero_conta){
+void extrato_mes_atual(struct Cliente *listaCliente, struct Conta *listaConta, struct Transacoes *listaTransacoes, char cpf[], int numero_conta){
 
     // Declaração de variável
     double saldo_anterior = 0, saldo_atual = 0;
@@ -861,7 +861,7 @@ int main(){
             printf("Digite o numero da conta do cliente:\n");
             scanf("%d", &numero_conta);
             system("cls");
-            extrato_mes_atual(listaCliente, listaConta, listaOperacao, listaTransacoes, cpf, numero_conta);
+            extrato_mes_atual(listaCliente, listaConta, listaTransacoes, cpf, numero_conta);
         }
         /*else if(x==5){
             system("cls");
