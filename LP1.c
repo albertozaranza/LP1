@@ -657,7 +657,7 @@ int main(){
 
     // Leitura do arquivo
     FILE *arquivo;
-    arquivo = fopen("Dados.txt", "r");
+    arquivo = fopen("arquivo.txt", "r");
 
     fscanf(arquivo, "%s\n", aux);
     while(fscanf(arquivo, "%d, %[^,], %[^,], %[^,], %[^,], %[^;];\n", &id_cliente, nome, cpf, telefone, municipio, estado) == 6){
